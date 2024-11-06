@@ -8,3 +8,4 @@ target
 test.properties
 release-repo
 .vscode/
+.tailisman

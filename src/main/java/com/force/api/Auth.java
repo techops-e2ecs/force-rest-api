@@ -58,6 +58,29 @@ public class Auth {
 		}
 	}
 
+	static public final ApiSession oauthByConnectedAppFlow(ApiConfig c) {
+		if(c.getClientId()==null) throw new IllegalStateException("clientId cannot be null");
+		if(c.getClientSecret()==null) throw new IllegalStateException("clientSecret cannot be null");
+		try {
+			HttpResponse r = Http.send(HttpRequest.formPost()
+					.url(c.getLoginEndpoint()+"/services/oauth2/token")
+					.header("Accept","application/json")
+					.param("grant_type","client_credentials")
+					.param("client_id",c.getClientId())
+					.param("client_secret", c.getClientSecret())
+			);
+			if(r.getResponseCode()!=200) {
+				throw new AuthException(r.getResponseCode(),"Auth.oauthByConnectedAppFlow failed: "+r.getString());
+			} else {
+				@SuppressWarnings("unchecked")
+				Map<String, Object> resp = jsonMapper.readValue(r.getStream(), Map.class);
+				return new ApiSession((String) resp.get("access_token"), (String) resp.get("instance_url"));
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	static private final String escapeXml(String s) {
 		StringBuffer sb = new StringBuffer();
 		for(int i=0;i<s.length();i++) {
@@ -232,12 +255,15 @@ public class Auth {
 	}
 
 	static public final ApiSession authenticate(ApiConfig c) {
-		if(c.getUsername()!=null && c.getPassword()!=null && c.getClientId()!=null && c.getClientSecret()!=null) {
+		if (c.getUsername()!=null && c.getPassword()!=null && c.getClientId()!=null && c.getClientSecret()!=null) {
 			// username/password oauth flow
 			return oauthLoginPasswordFlow(c);
 		}
-		else if(c.getUsername()!=null && c.getPassword()!=null) {
+		if (c.getUsername()!=null && c.getPassword()!=null) {
 			return soaploginPasswordFlow(c);
+		}
+		if (c.getClientId()!=null && c.getClientId()!=null) {
+			return oauthByConnectedAppFlow(c);
 		}
 		return null;
 	}
