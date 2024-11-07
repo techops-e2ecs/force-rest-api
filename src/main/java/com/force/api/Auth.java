@@ -63,12 +63,13 @@ public class Auth {
 		if(c.getClientSecret()==null) throw new IllegalStateException("clientSecret cannot be null");
 		try {
 			HttpResponse r = Http.send(HttpRequest.formPost()
-					.url(c.getLoginEndpoint()+"/services/oauth2/token")
+					.url("https://thoughtworks--sfdcuat2.sandbox.my.salesforce.com/services/oauth2/token")
 					.header("Accept","application/json")
 					.param("grant_type","client_credentials")
 					.param("client_id",c.getClientId())
 					.param("client_secret", c.getClientSecret())
 			);
+			System.out.println("url is " + c.getLoginEndpoint()+"/services/oauth2/token");
 			if(r.getResponseCode()!=200) {
 				throw new AuthException(r.getResponseCode(),"Auth.oauthByConnectedAppFlow failed: "+r.getString());
 			} else {
@@ -262,7 +263,7 @@ public class Auth {
 		if (c.getUsername()!=null && c.getPassword()!=null) {
 			return soaploginPasswordFlow(c);
 		}
-		if (c.getClientId()!=null && c.getClientId()!=null) {
+		if (c.getClientId()!=null && c.getClientSecret()!=null) {
 			return oauthByConnectedAppFlow(c);
 		}
 		return null;
