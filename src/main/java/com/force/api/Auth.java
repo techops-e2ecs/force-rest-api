@@ -58,18 +58,17 @@ public class Auth {
 		}
 	}
 
-	static public final ApiSession oauthByConnectedAppFlow(ApiConfig c) {
+	static public ApiSession oauthByConnectedAppFlow(ApiConfig c) {
 		if(c.getClientId()==null) throw new IllegalStateException("clientId cannot be null");
 		if(c.getClientSecret()==null) throw new IllegalStateException("clientSecret cannot be null");
 		try {
 			HttpResponse r = Http.send(HttpRequest.formPost()
-					.url("https://thoughtworks--sfdcuat2.sandbox.my.salesforce.com/services/oauth2/token")
+					.url(c.getLoginEndpoint()+"/services/oauth2/token")
 					.header("Accept","application/json")
 					.param("grant_type","client_credentials")
 					.param("client_id",c.getClientId())
 					.param("client_secret", c.getClientSecret())
 			);
-			System.out.println("url is " + c.getLoginEndpoint()+"/services/oauth2/token");
 			if(r.getResponseCode()!=200) {
 				throw new AuthException(r.getResponseCode(),"Auth.oauthByConnectedAppFlow failed: "+r.getString());
 			} else {
